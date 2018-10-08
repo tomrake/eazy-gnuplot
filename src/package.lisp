@@ -115,10 +115,14 @@
       (funcall fn key value)
       (map-plist rest fn))))
 
-(defun gp-setup (&rest args &key terminal output multiplot &allow-other-keys)
+(defun gp-setup (&rest args &key (terminal t) output multiplot &allow-other-keys)
   "Special command for setting up gnuplot. This is almost the same as GP command,
 however it serves some special purposes such as terminal detection from the output,
-multiplot etc."
+multiplot etc.
+   Keywords:
+     :terminal <aterm>     - terminal to use default is T which is the default gnuplot terminal
+     :output   <aFile>     - The file to output default is nil
+"
   (let ((*print-case* :downcase))
     (cond ((and (null terminal) (null output)) (error "gp-setup is missing both :terminal and :output."))
 	  ((null terminal) (ematch (pathname-type (pathname output))
@@ -130,7 +134,8 @@ multiplot etc."
 			     ((and type (type string)) 
 			      (setf terminal (make-keyword type))))))
     (setf *plot-type-multiplot* multiplot)
-    (apply #'gp :set :terminal (ensure-list terminal))
+    (cond ((eql t terminal))
+	  (t  (apply #'gp :set :terminal (ensure-list terminal))))
     (apply #'gp :set :output (ensure-list output))
     (remf args :terminal)
     (remf args :output)
